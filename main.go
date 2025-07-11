@@ -22,10 +22,10 @@ func main() {
 	serveMux.Handle("/app/", apiCfg.middlewareMetricsInc(fileHandler))
 	serveMux.Handle("GET /api/healthz", healthHandler{})
 	metricHandler := metricHandler{&apiCfg}
-	serveMux.Handle("GET /api/metrics", metricHandler)
+	serveMux.Handle("GET /admin/metrics/", metricHandler)
 
 	resetHandler := resetHandler{&apiCfg}
-	serveMux.Handle("POST /api/reset", resetHandler)
+	serveMux.Handle("POST /admin/reset", resetHandler)
 
 	err := server.ListenAndServe()
 
