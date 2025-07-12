@@ -23,6 +23,7 @@ func main() {
 	serveMux.Handle("GET /api/healthz", healthHandler{})
 	metricHandler := metricHandler{&apiCfg}
 	serveMux.Handle("GET /admin/metrics/", metricHandler)
+	serveMux.Handle("POST /api/validate_chirp", chirpValidationHandler{})
 
 	resetHandler := resetHandler{&apiCfg}
 	serveMux.Handle("POST /admin/reset", resetHandler)
