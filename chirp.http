@@ -8,25 +8,6 @@ Content-Type: application/json
 Host: {{BASE_URL}}
 
 {
-  "body": "This is an opinion I need to share with the world"
-}
-
-> {%
-  let json = response.body;
-
-  client.test('Check response', function () {
-    assert.responseHas('responseCode', 200, 'Check response is 200');
-    assert.true('valid' in json, 'Response is true')
-  })
-%}
-
-### Example 200
-
-POST /api/validate_chirp HTTP/1.1
-Content-Type: application/json
-Host: {{BASE_URL}}
-
-{
   "body": "I had something interesting for breakfast"
 }
 
@@ -35,11 +16,53 @@ Host: {{BASE_URL}}
 
   client.test('Check response', function () {
     assert.responseHas('responseCode', 200, 'Check response is 200');
-    assert.true('valid' in json, 'Response is true')
+    assert.true('cleaned_body' in json, 'Has .cleaned_body')
+    assert.true(json.cleaned_body === 'I had something interesting for breakfast', 'Has .cleaned_body')
   })
 %}
 
-### Test invalid Chirp
+### Body with extra fields are ignored
+
+POST /api/validate_chirp HTTP/1.1
+Content-Type: application/json
+Host: {{BASE_URL}}
+
+{
+  "body": "I hear Mastodon is better than Chirpy. sharbert I need to migrate",
+  "extra": "this should be ignored"
+}
+
+> {%
+  let json = response.body;
+
+  client.test('Check response', function () {
+    assert.responseHas('responseCode', 200, 'Check response is 200');
+    assert.true('cleaned_body' in json, 'Has .cleaned_body')
+    assert.true(json.cleaned_body === 'I hear Mastodon is better than Chirpy. **** I need to migrate', 'Has correct message')
+  })
+%}
+
+### Validate sanitization "kerfuffle"
+
+POST /api/validate_chirp HTTP/1.1
+Content-Type: application/json
+Host: {{BASE_URL}}
+
+{
+  "body": "I really need a kerfuffle to go to bed sooner, Fornax !"
+}
+
+> {%
+  let json = response.body;
+
+  client.test('Check response', function () {
+    assert.responseHas('responseCode', 200, 'Check response is 200');
+    assert.true('cleaned_body' in json, 'Has .cleaned_body')
+    assert(json.cleaned_body === 'I really need a **** to go to bed sooner, **** !', 'Did sanitize kerfuffle')
+  })
+%}
+
+### Test invalid Chirp - Too long
 
 POST /api/validate_chirp HTTP/1.1
 Content-Type: application/json

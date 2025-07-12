@@ -2,9 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
+	"regexp"
+	"strings"
 )
 
 type chirpValidationHandler struct{}
@@ -14,22 +15,11 @@ type chirpBody struct {
 }
 
 type chirpValidationResponse struct {
-	Valid bool `json:"valid"`
-}
-
-type errorResponse struct {
-	Error string `json:"error"`
+	CleanedBody string `json:"cleaned_body"`
 }
 
 const (
-	internalServerText string = "Something went wrong"
-	chirpTooLongText   string = "Chirp is too long"
-)
-
-var (
-	validChirpResponse     = chirpValidationResponse{Valid: true}
-	chirpTooLongResponse   = errorResponse{Error: chirpTooLongText}
-	internalServerResponse = errorResponse{Error: internalServerText}
+	chirpTooLongText string = "Chirp is too long"
 )
 
 func (c chirpValidationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -41,67 +31,26 @@ func (c chirpValidationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	if err := decoder.Decode(&body); err != nil {
 		log.Printf("failed to decode parameters: %s", err)
-		res, err := json.Marshal(internalServerResponse)
-
-		if err != nil {
-			catastrophicResponse(w)
-			return
-		}
-
-		w.WriteHeader(http.StatusInternalServerError)
-		if _, err := w.Write(res); err != nil {
-			catastrophicResponse(w)
-			return
-		}
+		sendJsonErrorResponse(w, http.StatusInternalServerError, "failed to decode body", err)
 
 		return
 	}
 
+	// Validation
 	isValid := len(body.Body) <= 140
-	err := sendChirpResponse(isValid, w)
 
-	if err != nil {
-		catastrophicResponse(w)
-		return
-	}
-}
-
-func sendChirpResponse(isValid bool, w http.ResponseWriter) error {
 	switch isValid {
 	case true:
-		w.WriteHeader(http.StatusOK)
-		res, err := json.Marshal(validChirpResponse)
-		if err != nil {
-			return err
-		}
-
-		w.Write(res)
-		return nil
+		censoredBody := replaceProfanities(body.Body)
+		sendJsonResponse(w, http.StatusOK, chirpValidationResponse{CleanedBody: censoredBody})
 	case false:
-		w.WriteHeader(http.StatusBadRequest)
-		res, err := json.Marshal(chirpTooLongResponse)
-		if err != nil {
-			return err
-		}
-
-		w.Write(res)
-		return nil
+		sendJsonErrorResponse(w, http.StatusBadRequest, chirpTooLongText, nil)
 	}
-
-	return nil
-
 }
-func catastrophicResponse(w http.ResponseWriter) {
-	res, err := json.Marshal(internalServerResponse)
 
-	if err != nil {
-		w.Header().Add("Content-Type", "text/plain; charset=utf-8")
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "Catastrophic error: %v", err)
-		panic(err)
-	}
-
-	w.WriteHeader(http.StatusInternalServerError)
-	w.Write(res)
-
+func replaceProfanities(chirp string) string {
+	profaneWords := []string{"kerfuffle", "sharbert", "fornax"}
+	regexCombination := "(?i)(" + strings.Join(profaneWords, "|") + ")"
+	pRegex := regexp.MustCompile(regexCombination)
+	return pRegex.ReplaceAllString(chirp, "****")
 }
