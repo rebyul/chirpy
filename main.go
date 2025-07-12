@@ -1,21 +1,49 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
 	"net/http"
+	"os"
 	"sync/atomic"
+
+	/**
+	  This is one of my least favorite things working with SQL in Go currently. You
+	  have to import the driver, but you don't use it directly anywhere in your code.
+	  The underscore tells Go that you're importing it for its side effects, not
+	  because you need to use it.
+	*/
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
+	"github.com/rebyul/chirpy/internal/database"
 )
 
 type apiConfig struct {
 	fileserverHits atomic.Int32
+	queries        *database.Queries
 }
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		errmsg := fmt.Errorf("failed to load env vars: %w", err)
+		panic(errmsg)
+	}
+
+	dbURL := os.Getenv("DB_URL")
+
+	db, dbErr := sql.Open("postgres", dbURL)
+
+	if dbErr != nil {
+		panic(dbErr)
+	}
+
+	dbQueries := database.New(db)
 	serveMux := http.NewServeMux()
 	server := &http.Server{
 		Addr:    ":8080",
 		Handler: serveMux,
 	}
-	apiCfg := apiConfig{fileserverHits: atomic.Int32{}}
+	apiCfg := apiConfig{fileserverHits: atomic.Int32{}, queries: dbQueries}
 
 	// fileServer := http.StripPrefix("/app/", http.FileServer(http.Dir(".")))
 	fileHandler := fileHandler{}
