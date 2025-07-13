@@ -18,11 +18,6 @@ import (
 	"github.com/rebyul/chirpy/internal/database"
 )
 
-type apiConfig struct {
-	fileserverHits atomic.Int32
-	queries        *database.Queries
-}
-
 func main() {
 	if err := godotenv.Load(); err != nil {
 		errmsg := fmt.Errorf("failed to load env vars: %w", err)
@@ -49,9 +44,11 @@ func main() {
 	fileHandler := fileHandler{}
 	serveMux.Handle("/app/", apiCfg.middlewareMetricsInc(fileHandler))
 	serveMux.Handle("GET /api/healthz", healthHandler{})
-	metricHandler := metricHandler{&apiCfg}
-	serveMux.Handle("GET /admin/metrics/", metricHandler)
+	metricHandler := metricHandler{cfg: &apiCfg}
+	serveMux.Handle("GET /admin/metrics/", &metricHandler)
 	serveMux.Handle("POST /api/validate_chirp", chirpValidationHandler{})
+	userHandler := userHandler{cfg: &apiCfg}
+	serveMux.HandleFunc("POST /api/users", (&userHandler).createUser)
 
 	resetHandler := resetHandler{&apiCfg}
 	serveMux.Handle("POST /admin/reset", resetHandler)

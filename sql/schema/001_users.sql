@@ -1,10 +1,9 @@
 -- +goose Up
 create table users(
-  id uuid,
-  created_at timestamp,
-  updated_at timestamp,
-  email text,
-  PRIMARY KEY(id)
+  id uuid primary key,
+  created_at timestamp not null,
+  updated_at timestamp not null,
+  email text not null unique
 );
 
 -- +goose Down

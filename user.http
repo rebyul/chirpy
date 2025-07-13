@@ -1,0 +1,25 @@
+@BASE_URL = HTTP://localhost:8080
+
+
+### Create user
+
+POST /api/users HTTP/1.1
+Content-Type: application/json
+Host: {{BASE_URL}}
+
+{
+  "email": "user@example.com"
+}
+
+> {%
+  let json = response.body;
+
+  client.test('Create user', function () {
+    assert.responseHas('responseCode', 201, 'Check response is 201');
+    assert.true('id' in json, 'Has .id')
+    assert.true('created_at' in json, 'Has .created_at')
+    assert.true('updated_at' in json, 'Has .update_at')
+    assert.true('email' in json, 'Has .email')
+    assert.true(json.email === 'user@example.com', 'Has correct email')
+  })
+%}
