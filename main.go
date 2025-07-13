@@ -25,6 +25,7 @@ func main() {
 	}
 
 	dbURL := os.Getenv("DB_URL")
+	platform := os.Getenv("PLATFORM")
 
 	db, dbErr := sql.Open("postgres", dbURL)
 
@@ -38,7 +39,7 @@ func main() {
 		Addr:    ":8080",
 		Handler: serveMux,
 	}
-	apiCfg := apiConfig{fileserverHits: atomic.Int32{}, queries: dbQueries}
+	apiCfg := apiConfig{fileserverHits: atomic.Int32{}, platform: platform, queries: dbQueries}
 
 	// fileServer := http.StripPrefix("/app/", http.FileServer(http.Dir(".")))
 	fileHandler := fileHandler{}

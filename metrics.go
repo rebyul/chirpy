@@ -41,17 +41,3 @@ func (m metricHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
 	}
 }
-
-type resetHandler struct {
-	cfg *apiConfig
-}
-
-func (r resetHandler) ServeHTTP(w http.ResponseWriter, _ *http.Request) {
-	r.cfg.fileserverHits.Store(0)
-	w.WriteHeader(http.StatusOK)
-	_, err := w.Write([]byte("Hits reset to 0\n"))
-
-	if err != nil {
-		http.Error(w, "Failed to write response", http.StatusInternalServerError)
-	}
-}

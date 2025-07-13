@@ -21,11 +21,13 @@ func (u *userHandler) createUser(w http.ResponseWriter, r *http.Request) {
 	var request postUserRequest
 	if err := decoder.Decode(&request); err != nil {
 		sendJsonErrorResponse(w, http.StatusInternalServerError, "failed to decode post body req", err)
+		return
 	}
 
 	user, err := u.cfg.queries.CreateUser(r.Context(), request.Email)
 	if err != nil {
 		sendJsonErrorResponse(w, http.StatusInternalServerError, "db failed to save user", err)
+		return
 	}
 
 	type postUserResponse struct {
