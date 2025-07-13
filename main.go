@@ -47,7 +47,8 @@ func main() {
 	serveMux.Handle("GET /api/healthz", healthHandler{})
 	metricHandler := metricHandler{cfg: &apiCfg}
 	serveMux.Handle("GET /admin/metrics/", &metricHandler)
-	serveMux.Handle("POST /api/validate_chirp", chirpValidationHandler{})
+	serveMux.Handle("POST /api/chirps", &chirpCreateHandler{&apiCfg})
+	// serveMux.Handle("POST /api/validate_chirp", chirpValidationHandler{})
 	userHandler := userHandler{cfg: &apiCfg}
 	serveMux.HandleFunc("POST /api/users", (&userHandler).createUser)
 
