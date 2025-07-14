@@ -83,6 +83,9 @@ func (c *ChirpHandlers) CreateChirp(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, http.StatusCreated, res)
 }
 
+func (c *ChirpHandlers) GetAllChirps(w http.ResponseWriter, r *http.Request) {
+}
+
 // func (c *chirpCreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // 	var req = createChirpRequest{}
 // 	decoder := json.NewDecoder(r.Body)
