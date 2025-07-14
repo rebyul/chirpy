@@ -73,3 +73,20 @@ Host: {{BASE_URL}}
   })
 
 %}
+
+### Get all chirps
+
+GET /api/chirps HTTP/1.1
+Content-Type: application/json
+Host: {{BASE_URL}}
+
+> {%
+
+  let json = response.body;
+
+  client.test('Check response', function () {
+    assert.responseHas('responseCode', 200, 'Check response is 200');
+    // assert.true(Array.IsArray(json), 'Response is array')
+    assert.headersHas("Content-Type", "application/json", 'header has content-type application/json')
+  })
+%}

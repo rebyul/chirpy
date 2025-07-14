@@ -21,6 +21,7 @@ func (q *Queries) DeleteUsers(ctx context.Context) ([]uuid.UUID, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	defer rows.Close()
 	var items []uuid.UUID
 	for rows.Next() {
