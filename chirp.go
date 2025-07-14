@@ -108,6 +108,33 @@ func (c *ChirpHandlers) GetAllChirps(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func (c *ChirpHandlers) GetChirpById(w http.ResponseWriter, r *http.Request) {
+	chirpParam := r.PathValue("chirpID")
+
+	log.Println("chirp path", chirpParam)
+
+	chirpUuid, err := uuid.Parse(chirpParam)
+	if err != nil {
+		sendJsonErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid chirp id: %s", chirpParam), err)
+		return
+	}
+
+	chirp, err := c.cfg.queries.GetChirpById(r.Context(), chirpUuid)
+
+	if err != nil {
+		sendJsonErrorResponse(w, http.StatusNotFound, fmt.Sprintf("couldn't find chirp id: %s", chirpParam), err)
+		return
+	}
+
+	sendJsonResponse(w, http.StatusOK, ChirpResponse{Id: chirp.ID.String(),
+		CreatedAt: chirp.CreatedAt, UpdatedAt: chirp.UpdatedAt, Body: chirp.Body,
+		UserId: chirp.UserID.String()})
+	return
+	// if chirp == nil {
+	// 	sendJsonResponse(w, http.StatusNotFound, fmt.Sprintf("failed to find chirp id: %s", chirpParam))
+	// }
+}
+
 func getSanitizedChirp(chirp string) (string, bool) {
 	if valid := validateChirp(chirp); !valid {
 		return "", false

@@ -50,7 +50,7 @@ func main() {
 	chirpHandlers := ChirpHandlers{&apiCfg}
 	serveMux.HandleFunc("GET /api/chirps", chirpHandlers.GetAllChirps)
 	serveMux.HandleFunc("POST /api/chirps", chirpHandlers.CreateChirp)
-	// serveMux.Handle("POST /api/validate_chirp", chirpValidationHandler{})
+	serveMux.HandleFunc("GET /api/chirps/{chirpID}", chirpHandlers.GetChirpById)
 	userHandler := userHandler{cfg: &apiCfg}
 	serveMux.HandleFunc("POST /api/users", (&userHandler).createUser)
 
