@@ -1,6 +1,3 @@
-@BASE_URL = HTTP://localhost:8080
-
-
 ### Create Chirp
 
 POST /api/chirps HTTP/1.1

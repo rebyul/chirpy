@@ -1,6 +1,10 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/rebyul/chirpy/internal/responses"
+)
 
 type resetHandler struct {
 	cfg *apiConfig
@@ -8,13 +12,13 @@ type resetHandler struct {
 
 func (r resetHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if r.cfg.platform != "dev" {
-		sendJsonErrorResponse(w, http.StatusForbidden, "forbidden", nil)
+		responses.SendJsonErrorResponse(w, http.StatusForbidden, "forbidden", nil)
 		return
 	}
 
 	deletedIds, err := r.cfg.queries.DeleteUsers(req.Context())
 	if err != nil {
-		sendJsonErrorResponse(w, http.StatusInternalServerError, "db failed to delete users", err)
+		responses.SendJsonErrorResponse(w, http.StatusInternalServerError, "db failed to delete users", err)
 		return
 	}
 
@@ -27,6 +31,6 @@ func (r resetHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 	res := postResetResponse{respIds}
 
-	sendJsonResponse(w, http.StatusOK, res)
+	responses.SendJsonResponse(w, http.StatusOK, res)
 	return
 }

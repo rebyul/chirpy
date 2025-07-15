@@ -15,6 +15,7 @@ import (
 	not because you need to use it.
 	*/
 	_ "github.com/lib/pq"
+	"github.com/rebyul/chirpy/internal/auth"
 	"github.com/rebyul/chirpy/internal/database"
 )
 
@@ -41,18 +42,25 @@ func main() {
 	}
 	apiCfg := apiConfig{fileserverHits: atomic.Int32{}, platform: platform, queries: dbQueries}
 
-	// fileServer := http.StripPrefix("/app/", http.FileServer(http.Dir(".")))
 	fileHandler := fileHandler{}
 	serveMux.Handle("/app/", apiCfg.middlewareMetricsInc(fileHandler))
 	serveMux.Handle("GET /api/healthz", healthHandler{})
+
+	authHandlers := auth.AuthHandlers{
+		Queries: apiCfg.queries,
+	}
+	serveMux.HandleFunc("POST /api/login", authHandlers.HandleLogin)
+
 	metricHandler := metricHandler{cfg: &apiCfg}
 	serveMux.Handle("GET /admin/metrics/", &metricHandler)
+
 	chirpHandlers := ChirpHandlers{&apiCfg}
 	serveMux.HandleFunc("GET /api/chirps", chirpHandlers.GetAllChirps)
 	serveMux.HandleFunc("POST /api/chirps", chirpHandlers.CreateChirp)
 	serveMux.HandleFunc("GET /api/chirps/{chirpID}", chirpHandlers.GetChirpById)
+
 	userHandler := userHandler{cfg: &apiCfg}
-	serveMux.HandleFunc("POST /api/users", (&userHandler).createUser)
+	serveMux.HandleFunc("POST /api/users", userHandler.createUser)
 
 	resetHandler := resetHandler{&apiCfg}
 	serveMux.Handle("POST /admin/reset", resetHandler)

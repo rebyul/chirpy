@@ -1,4 +1,4 @@
-package main
+package responses
 
 import (
 	"encoding/json"
@@ -18,23 +18,23 @@ var (
 	internalServerResponse = errorResponse{Error: internalServerText}
 )
 
-func sendJsonErrorResponse(w http.ResponseWriter, code int, msg string, err error) {
+func SendJsonErrorResponse(w http.ResponseWriter, code int, msg string, err error) {
 	if err != nil {
 		log.Println(err)
 	}
 
 	if code > 499 {
 		log.Printf("Responding with 5XX error: %s", msg)
-		sendJsonResponse(w, code, internalServerResponse)
+		SendJsonResponse(w, code, internalServerResponse)
 		return
 	}
 
-	sendJsonResponse(w, code, errorResponse{
+	SendJsonResponse(w, code, errorResponse{
 		Error: msg,
 	})
 }
 
-func sendJsonResponse(w http.ResponseWriter, code int, payload any) {
+func SendJsonResponse(w http.ResponseWriter, code int, payload any) {
 	w.Header().Set("Content-Type", "application/json")
 
 	res, err := json.Marshal(payload)

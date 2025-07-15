@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rebyul/chirpy/internal/database"
+	"github.com/rebyul/chirpy/internal/responses"
 )
 
 const (
@@ -44,7 +45,7 @@ func (c *ChirpHandlers) CreateChirp(w http.ResponseWriter, r *http.Request) {
 
 	if err := decoder.Decode(&req); err != nil {
 		log.Printf("failed to decode parameters: %s", err)
-		sendJsonErrorResponse(w, http.StatusInternalServerError, "failed to decode body", err)
+		responses.SendJsonErrorResponse(w, http.StatusInternalServerError, "failed to decode body", err)
 		return
 	}
 
@@ -52,13 +53,13 @@ func (c *ChirpHandlers) CreateChirp(w http.ResponseWriter, r *http.Request) {
 	sanitized, valid := getSanitizedChirp(req.Body)
 
 	if !valid {
-		sendJsonErrorResponse(w, http.StatusBadRequest, chirpTooLongText, nil)
+		responses.SendJsonErrorResponse(w, http.StatusBadRequest, chirpTooLongText, nil)
 		return
 	}
 
 	userId, err := uuid.Parse(req.UserId)
 	if err != nil {
-		sendJsonErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid userid guid: %s", req.UserId), err)
+		responses.SendJsonErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid userid guid: %s", req.UserId), err)
 		return
 	}
 
@@ -66,7 +67,7 @@ func (c *ChirpHandlers) CreateChirp(w http.ResponseWriter, r *http.Request) {
 	saved, err := c.cfg.queries.CreateChirp(r.Context(), database.CreateChirpParams{Body: sanitized, UserID: userId})
 
 	if err != nil {
-		sendJsonErrorResponse(w, http.StatusInternalServerError, "failed to save user to db", err)
+		responses.SendJsonErrorResponse(w, http.StatusInternalServerError, "failed to save user to db", err)
 		return
 	}
 
@@ -79,14 +80,14 @@ func (c *ChirpHandlers) CreateChirp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create response
-	sendJsonResponse(w, http.StatusCreated, res)
+	responses.SendJsonResponse(w, http.StatusCreated, res)
 }
 
 func (c *ChirpHandlers) GetAllChirps(w http.ResponseWriter, r *http.Request) {
 	chirps, err := c.cfg.queries.GetChirps(r.Context())
 
 	if err != nil {
-		sendJsonErrorResponse(w, http.StatusInternalServerError, "failed to retrieve chirps", err)
+		responses.SendJsonErrorResponse(w, http.StatusInternalServerError, "failed to retrieve chirps", err)
 		return
 	}
 
@@ -104,7 +105,7 @@ func (c *ChirpHandlers) GetAllChirps(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
-	sendJsonResponse(w, http.StatusOK, chirpResponses)
+	responses.SendJsonResponse(w, http.StatusOK, chirpResponses)
 	return
 }
 
@@ -115,18 +116,18 @@ func (c *ChirpHandlers) GetChirpById(w http.ResponseWriter, r *http.Request) {
 
 	chirpUuid, err := uuid.Parse(chirpParam)
 	if err != nil {
-		sendJsonErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid chirp id: %s", chirpParam), err)
+		responses.SendJsonErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid chirp id: %s", chirpParam), err)
 		return
 	}
 
 	chirp, err := c.cfg.queries.GetChirpById(r.Context(), chirpUuid)
 
 	if err != nil {
-		sendJsonErrorResponse(w, http.StatusNotFound, fmt.Sprintf("couldn't find chirp id: %s", chirpParam), err)
+		responses.SendJsonErrorResponse(w, http.StatusNotFound, fmt.Sprintf("couldn't find chirp id: %s", chirpParam), err)
 		return
 	}
 
-	sendJsonResponse(w, http.StatusOK, ChirpResponse{Id: chirp.ID.String(),
+	responses.SendJsonResponse(w, http.StatusOK, ChirpResponse{Id: chirp.ID.String(),
 		CreatedAt: chirp.CreatedAt, UpdatedAt: chirp.UpdatedAt, Body: chirp.Body,
 		UserId: chirp.UserID.String()})
 	return

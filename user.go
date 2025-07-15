@@ -4,6 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
+
+	"github.com/rebyul/chirpy/internal/auth"
+	"github.com/rebyul/chirpy/internal/database"
+	"github.com/rebyul/chirpy/internal/responses"
 )
 
 type userHandler struct {
@@ -12,7 +16,8 @@ type userHandler struct {
 
 func (u *userHandler) createUser(w http.ResponseWriter, r *http.Request) {
 	type postUserRequest struct {
-		Email string `json:"email"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -20,13 +25,26 @@ func (u *userHandler) createUser(w http.ResponseWriter, r *http.Request) {
 
 	var request postUserRequest
 	if err := decoder.Decode(&request); err != nil {
-		sendJsonErrorResponse(w, http.StatusInternalServerError, "failed to decode post body req", err)
+		responses.SendJsonErrorResponse(w, http.StatusInternalServerError, "failed to decode post body req", err)
 		return
 	}
 
-	user, err := u.cfg.queries.CreateUser(r.Context(), request.Email)
+	hashedPw, err := auth.HashPassword(request.Password)
+
 	if err != nil {
-		sendJsonErrorResponse(w, http.StatusInternalServerError, "db failed to save user", err)
+		responses.SendJsonErrorResponse(w, http.StatusInternalServerError, "failed to hash pw", err)
+		return
+	}
+
+	user, err := u.cfg.queries.CreateUser(r.Context(),
+		database.CreateUserParams{
+			Email:          request.Email,
+			HashedPassword: hashedPw,
+		},
+	)
+
+	if err != nil {
+		responses.SendJsonErrorResponse(w, http.StatusInternalServerError, "db failed to save user", err)
 		return
 	}
 
@@ -44,5 +62,9 @@ func (u *userHandler) createUser(w http.ResponseWriter, r *http.Request) {
 		Email:     user.Email,
 	}
 
-	sendJsonResponse(w, http.StatusCreated, resp)
+	responses.SendJsonResponse(w, http.StatusCreated, resp)
+}
+
+func isRawPwValid(pw string) bool {
+	return len(pw) == 0
 }
