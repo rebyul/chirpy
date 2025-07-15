@@ -7,13 +7,13 @@ import (
 	"os"
 	"sync/atomic"
 
-	/**
-	  This is one of my least favorite things working with SQL in Go currently. You
-	  have to import the driver, but you don't use it directly anywhere in your code.
-	  The underscore tells Go that you're importing it for its side effects, not
-	  because you need to use it.
-	*/
 	"github.com/joho/godotenv"
+	/**
+			This is one of my least favorite things working with SQL in Go currently.
+	You have to import the driver, but you don't use it directly anywhere in your
+	code. The underscore tells Go that you're importing it for its side effects,
+	not because you need to use it.
+	*/
 	_ "github.com/lib/pq"
 	"github.com/rebyul/chirpy/internal/database"
 )
