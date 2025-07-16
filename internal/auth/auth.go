@@ -13,13 +13,15 @@ import (
 )
 
 type AuthHandlers struct {
-	Queries *database.Queries
+	Queries     *database.Queries
+	TokenSecret string
 }
 
 func (a *AuthHandlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	type postLoginRequest struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Email            string `json:"email"`
+		Password         string `json:"password"`
+		ExpiresInSeconds int    `json:"expires_in_seconds"`
 	}
 
 	var req postLoginRequest
@@ -49,16 +51,34 @@ func (a *AuthHandlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		CreatedAt time.Time `json:"created_at"`
 		UpdatedAt time.Time `json:"updated_at"`
 		Email     string    `json:"email"`
+		Token     string    `json:"token"`
+	}
+
+	expiresIn := clampExpiresInSeconds(req.ExpiresInSeconds)
+	token, err := MakeJWT(row.ID, a.TokenSecret, expiresIn)
+	if err != nil {
+		responses.SendJsonErrorResponse(w, http.StatusInternalServerError, "failed to create jwt", err)
 	}
 
 	res := postLoginResponse{
-		Id:        row.Email,
+		Id:        row.ID.String(),
 		CreatedAt: row.CreatedAt,
 		UpdatedAt: row.UpdatedAt,
 		Email:     row.Email,
+		Token:     token,
 	}
 
 	responses.SendJsonResponse(w, http.StatusOK, res)
+}
+
+func clampExpiresInSeconds(input int) time.Duration {
+	hourDuration := time.Hour
+	inputDuration := time.Duration(input) * time.Second
+	if inputDuration < hourDuration {
+		return inputDuration
+	}
+
+	return hourDuration
 }
 
 var (

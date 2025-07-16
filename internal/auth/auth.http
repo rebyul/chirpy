@@ -19,7 +19,67 @@ Host: {{BASE_URL}}
 
 > {%
    let json = response.body;
-   
+   assert.responseHas('responseCode', 200, 'Check response is 200');
+   assert.true('id' in json, 'Has .id')
+   assert.true('created_at' in json, 'Has .created_at')
+   assert.true('updated_at' in json, 'Has .update_at')
+   assert.true('email' in json, 'Has .email')
+   assert.true(json.email === '{{EMAIL}}', 'Has correct email')
+   assert.true('token' in json, 'Has .token')
+%}
+
+
+### 
+
+
+### LOGIN_WITH_VALID_EXPIRES_IN_SECONDS
+
+POST /api/login HTTP/1.1
+Content-Type: application/json
+Host: {{BASE_URL}}
+
+{
+  "email": "{{EMAIL}}",
+  "expires_in_seconds": 60,
+  "password": "{{PASSWORD}}"
+}
+
+> {%
+   let json = response.body;
+   assert.responseHas('responseCode', 200, 'Check response is 200');
+   assert.true('id' in json, 'Has .id')
+   assert.true('created_at' in json, 'Has .created_at')
+   assert.true('updated_at' in json, 'Has .update_at')
+   assert.true('email' in json, 'Has .email')
+   assert.true(json.email === 'user@test.com', 'Has correct email')
+   assert.true('token' in json, 'Has .token')
+%}
+
+
+### 
+
+
+### LOGIN_WITH_INVALID_EXPIRES_IN_SECONDS
+
+POST /api/login HTTP/1.1
+Content-Type: application/json
+Host: {{BASE_URL}}
+
+{
+  "email": "{{EMAIL}}",
+  "expires_in_seconds": -60,
+  "password": "{{PASSWORD}}"
+}
+
+> {%
+   let json = response.body;
+   assert.responseHas('responseCode', 200, 'Check response is 200');
+   assert.true('id' in json, 'Has .id')
+   assert.true('created_at' in json, 'Has .created_at')
+   assert.true('updated_at' in json, 'Has .update_at')
+   assert.true('email' in json, 'Has .email')
+   assert.true(json.email === 'user@test.com', 'Has correct email')
+   assert.true('token' in json, 'Has .token')
 %}
 
 

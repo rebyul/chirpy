@@ -27,6 +27,7 @@ func main() {
 
 	dbURL := os.Getenv("DB_URL")
 	platform := os.Getenv("PLATFORM")
+	tokenSecret := os.Getenv("TOKEN_SECRET")
 
 	db, dbErr := sql.Open("postgres", dbURL)
 
@@ -40,14 +41,20 @@ func main() {
 		Addr:    ":8080",
 		Handler: serveMux,
 	}
-	apiCfg := apiConfig{fileserverHits: atomic.Int32{}, platform: platform, queries: dbQueries}
+	apiCfg := apiConfig{
+		fileserverHits: atomic.Int32{},
+		platform:       platform,
+		queries:        dbQueries,
+		tokensecret:    tokenSecret,
+	}
 
 	fileHandler := fileHandler{}
 	serveMux.Handle("/app/", apiCfg.middlewareMetricsInc(fileHandler))
 	serveMux.Handle("GET /api/healthz", healthHandler{})
 
 	authHandlers := auth.AuthHandlers{
-		Queries: apiCfg.queries,
+		Queries:     apiCfg.queries,
+		TokenSecret: apiCfg.tokensecret,
 	}
 	serveMux.HandleFunc("POST /api/login", authHandlers.HandleLogin)
 
