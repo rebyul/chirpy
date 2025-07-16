@@ -34,6 +34,8 @@ type ChirpResponse struct {
 var ChirpHandler ChirpHandlers = ChirpHandlers{cfg: nil}
 
 func (c *ChirpHandlers) CreateChirp(w http.ResponseWriter, r *http.Request) {
+	// This this duplicated through auth middleware but i need the user id here
+	// There must be a way to nicely pass down the userid/token down from the middleware to the handlers
 	tok, err := auth.GetBearerToken(r.Header)
 	if err != nil {
 		responses.SendJsonErrorResponse(w, http.StatusUnauthorized, "unauthorized", nil)
