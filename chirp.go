@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/rebyul/chirpy/internal/auth"
 	"github.com/rebyul/chirpy/internal/database"
 	"github.com/rebyul/chirpy/internal/responses"
 )
@@ -33,9 +34,20 @@ type ChirpResponse struct {
 var ChirpHandler ChirpHandlers = ChirpHandlers{cfg: nil}
 
 func (c *ChirpHandlers) CreateChirp(w http.ResponseWriter, r *http.Request) {
+	tok, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		responses.SendJsonErrorResponse(w, http.StatusUnauthorized, "unauthorized", nil)
+		return
+	}
+	userId, err := auth.ValidateJWT(tok, c.cfg.tokensecret)
+
+	if err != nil {
+		responses.SendJsonErrorResponse(w, http.StatusUnauthorized, "unauthorized", nil)
+		return
+	}
+
 	type createChirpRequest struct {
-		Body   string `json:"body"`
-		UserId string `json:"user_id"`
+		Body string `json:""`
 	}
 
 	var req = createChirpRequest{}
@@ -54,12 +66,6 @@ func (c *ChirpHandlers) CreateChirp(w http.ResponseWriter, r *http.Request) {
 
 	if !valid {
 		responses.SendJsonErrorResponse(w, http.StatusBadRequest, chirpTooLongText, nil)
-		return
-	}
-
-	userId, err := uuid.Parse(req.UserId)
-	if err != nil {
-		responses.SendJsonErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid userid guid: %s", req.UserId), err)
 		return
 	}
 

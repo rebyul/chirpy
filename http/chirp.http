@@ -1,7 +1,13 @@
+import ./auth.http
+
+
 ### Create Chirp
+
+run #LOGIN_WITH_VALID_EXPIRES_IN_SECONDS
 
 POST /api/chirps HTTP/1.1
 Content-Type: application/json
+Authorization: Bearer {{LOGIN_WITH_VALID_EXPIRES_IN_SECONDS.response.body.$.token}}
 Host: {{BASE_URL}}
 
 {
@@ -20,6 +26,26 @@ Host: {{BASE_URL}}
    assert.true('body' in json, 'Has .body')
    assert.true('user_id' in json, 'Has .user_id')
    assert.true(json.body === 'I had something interesting for breakfast', 'Body matches expected')
+   })
+%}
+
+
+### Unauthenticated create chirp
+
+POST /api/chirps HTTP/1.1
+Content-Type: application/json
+Host: {{BASE_URL}}
+
+{
+  "body": "I had something interesting for breakfast",
+  "user_id": "55df7a64-e562-4c6e-877a-b8d3afe118f2"
+}
+
+> {%
+   let json = response.body;
+   
+   client.test('Check response', function () {
+   assert.responseHas('responseCode', 401, 'Check response is 401');
    })
 %}
 

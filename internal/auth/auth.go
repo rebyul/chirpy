@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -55,6 +56,7 @@ func (a *AuthHandlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	expiresIn := clampExpiresInSeconds(req.ExpiresInSeconds)
+	log.Printf("Req expire: %v, calc expire: %v", req.ExpiresInSeconds, expiresIn)
 	token, err := MakeJWT(row.ID, a.TokenSecret, expiresIn)
 	if err != nil {
 		responses.SendJsonErrorResponse(w, http.StatusInternalServerError, "failed to create jwt", err)
@@ -74,6 +76,12 @@ func (a *AuthHandlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
 func clampExpiresInSeconds(input int) time.Duration {
 	hourDuration := time.Hour
 	inputDuration := time.Duration(input) * time.Second
+
+	// Default to 1 hour
+	if input == 0 {
+		return hourDuration
+	}
+
 	if inputDuration < hourDuration {
 		return inputDuration
 	}

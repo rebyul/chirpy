@@ -63,7 +63,10 @@ func main() {
 
 	chirpHandlers := ChirpHandlers{&apiCfg}
 	serveMux.HandleFunc("GET /api/chirps", chirpHandlers.GetAllChirps)
-	serveMux.HandleFunc("POST /api/chirps", chirpHandlers.CreateChirp)
+	jwtMiddleware := auth.JwtAuthenticationMiddleware{
+		Tokensecret: tokenSecret,
+	}
+	serveMux.Handle("POST /api/chirps", jwtMiddleware.MiddlewareJwtAuth(http.HandlerFunc(chirpHandlers.CreateChirp)))
 	serveMux.HandleFunc("GET /api/chirps/{chirpID}", chirpHandlers.GetChirpById)
 
 	userHandler := userHandler{cfg: &apiCfg}
