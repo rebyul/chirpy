@@ -2,8 +2,10 @@ package auth
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/rebyul/chirpy/internal/database"
@@ -57,4 +59,24 @@ func (a *AuthHandlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responses.SendJsonResponse(w, http.StatusOK, res)
+}
+
+var (
+	ErrMissingBearerToken = errors.New("missing bearer token")
+)
+
+const bearerPrefix = "bearer "
+
+func GetBearerToken(headers http.Header) (string, error) {
+	bearer := headers.Get("Authorization")
+
+	// strip bearer
+	index := strings.Index(strings.ToLower(bearer), bearerPrefix)
+	// Check bearer is at the beginning of the token
+	if index != 0 {
+		return "", ErrMissingBearerToken
+	}
+
+	token := bearer[index+len(bearerPrefix):]
+	return token, nil
 }
