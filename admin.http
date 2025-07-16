@@ -7,12 +7,13 @@ Host: {{BASE_URL}}
 {}
 
 > {%
-client.test('Reset users', function() {
-  assert.responseHas("responseCode", 200, 'response has 200')
-  let json = response.body
-  assert.true('ids' in json, 'has .ids')
-})
+   client.test('Reset users', function() {
+   assert.responseHas("responseCode", 200, 'response has 200')
+   let json = response.body
+   assert.true('ids' in json, 'has .ids')
+   })
 %}
+
 
 ### Reset - platform = nondev
 
@@ -23,7 +24,7 @@ Host: {{BASE_URL}}
 {}
 
 > {%
-client.test('Reset users', function() {
-  assert.responseHas("responseCode", 403, 'response has 200')
-})
+   client.test('Reset users', function() {
+   assert.responseHas("responseCode", 403, 'response has 200')
+   })
 %}

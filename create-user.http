@@ -14,14 +14,14 @@ Host: {{BASE_URL}}
 }
 
 > {%
-  let json = response.body;
-
-  client.test('Create user', function () {
-    assert.responseHas('responseCode', 201, 'Check response is 201');
-    assert.true('id' in json, 'Has .id')
-    assert.true('created_at' in json, 'Has .created_at')
-    assert.true('updated_at' in json, 'Has .update_at')
-    assert.true('email' in json, 'Has .email')
-    assert.true(json.email === 'user@test.com', 'Has correct email')
-  })
+   let json = response.body;
+   
+   client.test('Create user', function () {
+   assert.responseHas('responseCode', 201, 'Check response is 201');
+   assert.true('id' in json, 'Has .id')
+   assert.true('created_at' in json, 'Has .created_at')
+   assert.true('updated_at' in json, 'Has .update_at')
+   assert.true('email' in json, 'Has .email')
+   assert.true(json.email === 'user@test.com', 'Has correct email')
+   })
 %}
