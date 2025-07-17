@@ -57,6 +57,8 @@ func main() {
 		TokenSecret: apiCfg.tokensecret,
 	}
 	serveMux.HandleFunc("POST /api/login", authHandlers.HandleLogin)
+	serveMux.HandleFunc("POST /api/refresh", authHandlers.HandleRefresh)
+	serveMux.HandleFunc("POST /api/revoke", authHandlers.HandleRevoke)
 
 	metricHandler := metricHandler{cfg: &apiCfg}
 	serveMux.Handle("GET /admin/metrics/", &metricHandler)

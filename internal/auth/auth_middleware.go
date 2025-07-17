@@ -14,6 +14,7 @@ type JwtAuthenticationMiddleware struct {
 
 func (j *JwtAuthenticationMiddleware) MiddlewareJwtAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("starting request %v", r.URL.Path)
 		log.Printf("[Auth middleware start]: %v\n", r.Header.Get("Date"))
 		headerToken, err := GetBearerToken(r.Header)
 
@@ -23,6 +24,7 @@ func (j *JwtAuthenticationMiddleware) MiddlewareJwtAuth(next http.Handler) http.
 			return
 		}
 
+		log.Printf("token: %v", headerToken)
 		_, err = ValidateJWT(headerToken, j.Tokensecret)
 
 		if err != nil {

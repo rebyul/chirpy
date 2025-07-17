@@ -92,6 +92,64 @@ func (a *AuthHandlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	responses.SendJsonResponse(w, http.StatusOK, res)
 }
 
+func (a *AuthHandlers) HandleRefresh(w http.ResponseWriter, r *http.Request) {
+	refToken, err := GetBearerToken(r.Header)
+	if err != nil {
+		responses.SendJsonErrorResponse(w, http.StatusUnauthorized, "no refresh token in headers", err)
+		return
+	}
+
+	found, err := a.Queries.GetRefreshToken(r.Context(), refToken)
+
+	if err != nil || found.ExpiresAt.Before(time.Now().UTC()) {
+		responses.SendJsonErrorResponse(w, http.StatusUnauthorized, "no refresh token in db", err)
+		return
+	}
+	if found.RevokedAt.Valid {
+		responses.SendJsonErrorResponse(w, http.StatusUnauthorized, "token has been revoked. cant refresh", err)
+		return
+	}
+
+	newToken, err := MakeJWT(found.UserID, a.TokenSecret, clampExpiresInMaxOneHour(0))
+
+	if err != nil {
+		responses.SendJsonErrorResponse(w, http.StatusInternalServerError, "failed to create new token", err)
+		return
+	}
+
+	type postRefreshTokenResponse struct {
+		Token string `json:"token"`
+	}
+
+	responses.SendJsonResponse(w, http.StatusOK, postRefreshTokenResponse{
+		Token: newToken,
+	})
+
+}
+
+func (a *AuthHandlers) HandleRevoke(w http.ResponseWriter, r *http.Request) {
+
+	refToken, err := GetBearerToken(r.Header)
+	if err != nil {
+		responses.SendJsonErrorResponse(w, http.StatusUnauthorized, "no refresh token in headers", err)
+		return
+	}
+
+	found, err := a.Queries.GetRefreshToken(r.Context(), refToken)
+
+	if err != nil {
+		responses.SendJsonErrorResponse(w, http.StatusUnauthorized, "no refresh token in db", err)
+		return
+	}
+
+	if _, err := a.Queries.RevokeRefreshToken(r.Context(), found.Token); err != nil {
+		responses.SendJsonErrorResponse(w, http.StatusInternalServerError, "failed to revoke token in db", err)
+		return
+	}
+
+	responses.SendJsonResponse(w, http.StatusNoContent, nil)
+}
+
 func clampExpiresInMaxOneHour(input int) time.Duration {
 	hourDuration := time.Hour
 	inputDuration := time.Duration(input) * time.Second
