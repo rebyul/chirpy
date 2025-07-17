@@ -32,8 +32,7 @@ func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (any, error) {
 		return []byte(tokenSecret), nil
 	})
-	date, _ := token.Claims.GetExpirationTime()
-	log.Printf("Expiration time: %v", date)
+
 	if err != nil {
 		log.Println("validateJwt: failed to parse claims. invalid or expired", err)
 		return uuid.Nil, err
