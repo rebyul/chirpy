@@ -48,32 +48,51 @@ func (a *AuthHandlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type postLoginResponse struct {
-		Id        string    `json:"id"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
-		Email     string    `json:"email"`
-		Token     string    `json:"token"`
+		Id           string    `json:"id"`
+		CreatedAt    time.Time `json:"created_at"`
+		UpdatedAt    time.Time `json:"updated_at"`
+		Email        string    `json:"email"`
+		Token        string    `json:"token"`
+		RefreshToken string    `json:"refresh_token"`
 	}
 
-	expiresIn := clampExpiresInSeconds(req.ExpiresInSeconds)
+	expiresIn := clampExpiresInMaxOneHour(req.ExpiresInSeconds)
 	log.Printf("Req expire: %v, calc expire: %v", req.ExpiresInSeconds, expiresIn)
 	token, err := MakeJWT(row.ID, a.TokenSecret, expiresIn)
 	if err != nil {
 		responses.SendJsonErrorResponse(w, http.StatusInternalServerError, "failed to create jwt", err)
 	}
 
+	refreshToken, err := MakeRefreshToken()
+
+	if err != nil {
+		responses.SendJsonErrorResponse(w, http.StatusInternalServerError, "failed to create refresh token", err)
+	}
+
+	savedRefToken, err := a.Queries.CreateRefreshToken(r.Context(),
+		database.CreateRefreshTokenParams{
+			Token:     refreshToken,
+			UserID:    row.ID,
+			ExpiresAt: time.Now().UTC().Add(60 * time.Hour * 24),
+		})
+
+	if err != nil {
+		responses.SendJsonErrorResponse(w, http.StatusInternalServerError, "failed to save refresh token", err)
+	}
+
 	res := postLoginResponse{
-		Id:        row.ID.String(),
-		CreatedAt: row.CreatedAt,
-		UpdatedAt: row.UpdatedAt,
-		Email:     row.Email,
-		Token:     token,
+		Id:           row.ID.String(),
+		CreatedAt:    row.CreatedAt,
+		UpdatedAt:    row.UpdatedAt,
+		Email:        row.Email,
+		Token:        token,
+		RefreshToken: savedRefToken.Token,
 	}
 
 	responses.SendJsonResponse(w, http.StatusOK, res)
 }
 
-func clampExpiresInSeconds(input int) time.Duration {
+func clampExpiresInMaxOneHour(input int) time.Duration {
 	hourDuration := time.Hour
 	inputDuration := time.Duration(input) * time.Second
 
