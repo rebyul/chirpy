@@ -24,7 +24,6 @@ func (j *JwtAuthenticationMiddleware) MiddlewareJwtAuth(next http.Handler) http.
 			return
 		}
 
-		log.Printf("token: %v", headerToken)
 		_, err = ValidateJWT(headerToken, j.Tokensecret)
 
 		if err != nil {

@@ -121,6 +121,3 @@ Host: {{BASE_URL}}
    let json = response.body;
    assert.responseHas('responseCode', 204, 'Check response is 204');
 %}
-
-
-### 

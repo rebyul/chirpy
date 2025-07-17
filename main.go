@@ -73,6 +73,7 @@ func main() {
 
 	userHandler := userHandler{cfg: &apiCfg}
 	serveMux.HandleFunc("POST /api/users", userHandler.createUser)
+	serveMux.Handle("PUT /api/users", jwtMiddleware.MiddlewareJwtAuth(http.HandlerFunc(userHandler.UpdateUser)))
 
 	resetHandler := resetHandler{&apiCfg}
 	serveMux.Handle("POST /admin/reset", resetHandler)
