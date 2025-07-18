@@ -1,15 +1,18 @@
 @EMAIL = user@test.com
 @PASSWORD = asdfasdf
 
+import ./auth.http
 
-### CREATE_USER
 
-POST /api/users HTTP/1.1
+### UPDATE_USER
+
+PUT /api/users HTTP/1.1
 Content-Type: application/json
 Host: {{BASE_URL}}
+Authorization: Bearer {{LOGIN.response.body.$.token}}
 
 {
-  "email": "{{EMAIL}}",
+  "email": "{{LOGIN.response.body.$.email}}",
   "password": "{{PASSWORD}}"
 }
 
@@ -17,7 +20,7 @@ Host: {{BASE_URL}}
    let json = response.body;
    
    client.test('Create user', function () {
-   assert.responseHas('responseCode', 201, 'Check response is 201');
+   assert.responseHas('responseCode', 200, 'Check response is 200');
    assert.true('id' in json, 'Has .id')
    assert.true('created_at' in json, 'Has .created_at')
    assert.true('updated_at' in json, 'Has .update_at')
