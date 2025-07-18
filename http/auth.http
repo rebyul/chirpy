@@ -5,7 +5,7 @@ import ./admin.http
 import ./create-user.http
 
 
-### Login
+### LOGIN
 
 run #RESET_USERS
 run #CREATE_USER (@PASSWORD=asdfasdf, @EMAIL=user@test.com)
