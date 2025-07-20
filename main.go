@@ -68,8 +68,9 @@ func main() {
 	jwtMiddleware := auth.JwtAuthenticationMiddleware{
 		Tokensecret: tokenSecret,
 	}
-	serveMux.Handle("POST /api/chirps", jwtMiddleware.MiddlewareJwtAuth(http.HandlerFunc(chirpHandlers.CreateChirp)))
 	serveMux.HandleFunc("GET /api/chirps/{chirpID}", chirpHandlers.GetChirpById)
+	serveMux.Handle("POST /api/chirps", jwtMiddleware.MiddlewareJwtAuth(http.HandlerFunc(chirpHandlers.CreateChirp)))
+	serveMux.Handle("DELETE /api/chirps/{chirpID}", jwtMiddleware.MiddlewareJwtAuth(http.HandlerFunc(chirpHandlers.DeleteChirpById)))
 
 	userHandler := userHandler{cfg: &apiCfg}
 	serveMux.HandleFunc("POST /api/users", userHandler.createUser)

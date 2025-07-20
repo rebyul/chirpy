@@ -1,7 +1,7 @@
 import ./auth.http
 
 
-### Create Chirp
+### CREATE_CHIRP
 
 run #LOGIN_WITH_VALID_EXPIRES_IN_SECONDS
 
@@ -150,4 +150,20 @@ Host: {{BASE_URL}}
    // assert.true(Array.IsArray(json), 'Response is array')
    assert.headersHas("Content-Type", "application/json", 'header has content-type application/json')
    })
+%}
+
+
+### DELETE_CHIRP_BY_ID
+
+run #LOGIN_WITH_VALID_EXPIRES_IN_SECONDS
+run #CREATE_CHIRP
+
+DELETE /api/chirps/{{CREATE_CHIRP.response.body.$.id}} HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{LOGIN_WITH_VALID_EXPIRES_IN_SECONDS.response.body.$.token}}
+Host: {{BASE_URL}}
+
+> {%
+   
+   client.responseHas('responseCode', 204, 'CHeck response is 204')
 %}

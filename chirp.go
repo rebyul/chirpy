@@ -106,21 +106,12 @@ func (c *ChirpHandlers) GetAllChirps(w http.ResponseWriter, r *http.Request) {
 			CreatedAt: c.CreatedAt, UpdatedAt: c.UpdatedAt, Body: c.Body, UserId: c.UserID.String()})
 	}
 
-	// res, err := json.Marshal(chirpResponses)
-	//
-	// if err != nil {
-	// 	sendJsonErrorResponse(w, http.StatusInternalServerError, "failed to marshall get chirp response", err)
-	// 	return
-	// }
-
 	responses.SendJsonResponse(w, http.StatusOK, chirpResponses)
 	return
 }
 
 func (c *ChirpHandlers) GetChirpById(w http.ResponseWriter, r *http.Request) {
 	chirpParam := r.PathValue("chirpID")
-
-	log.Println("chirp path", chirpParam)
 
 	chirpUuid, err := uuid.Parse(chirpParam)
 	if err != nil {
@@ -139,9 +130,46 @@ func (c *ChirpHandlers) GetChirpById(w http.ResponseWriter, r *http.Request) {
 		CreatedAt: chirp.CreatedAt, UpdatedAt: chirp.UpdatedAt, Body: chirp.Body,
 		UserId: chirp.UserID.String()})
 	return
-	// if chirp == nil {
-	// 	sendJsonResponse(w, http.StatusNotFound, fmt.Sprintf("failed to find chirp id: %s", chirpParam))
-	// }
+}
+
+func (c *ChirpHandlers) DeleteChirpById(w http.ResponseWriter, r *http.Request) {
+	tok, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		responses.SendJsonErrorResponse(w, http.StatusUnauthorized, "unauthorized", nil)
+		return
+	}
+	userId, err := auth.ValidateJWT(tok, c.cfg.tokensecret)
+
+	if err != nil {
+		responses.SendJsonErrorResponse(w, http.StatusUnauthorized, "unauthorized", nil)
+		return
+	}
+
+	chirpParam := r.PathValue("chirpID")
+	chirpUuid, err := uuid.Parse(chirpParam)
+	if err != nil {
+		responses.SendJsonErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid chirp id: %s", chirpParam), err)
+		return
+	}
+
+	chirp, err := c.cfg.queries.GetChirpById(r.Context(), chirpUuid)
+
+	if err != nil {
+		responses.SendJsonErrorResponse(w, http.StatusNotFound, fmt.Sprintf("couldn't find chirp id: %s", chirpParam), err)
+		return
+	}
+
+	if chirp.UserID != userId {
+		responses.SendJsonErrorResponse(w, http.StatusForbidden, fmt.Sprintf("user doesn't own chirp id:%s", chirpParam), err)
+		return
+	}
+
+	if err := c.cfg.queries.DeleteChirpById(r.Context(), chirpUuid); err != nil {
+		responses.SendJsonErrorResponse(w, http.StatusInternalServerError, "failed to delete chirp", err)
+		return
+	}
+
+	responses.SendJsonResponse(w, http.StatusNoContent, nil)
 }
 
 func getSanitizedChirp(chirp string) (string, bool) {
