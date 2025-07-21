@@ -173,15 +173,31 @@ var (
 const bearerPrefix = "bearer "
 
 func GetBearerToken(headers http.Header) (string, error) {
-	bearer := headers.Get("Authorization")
+	authHeader := headers.Get("Authorization")
 
 	// strip bearer
-	index := strings.Index(strings.ToLower(bearer), bearerPrefix)
+	index := strings.Index(strings.ToLower(authHeader), bearerPrefix)
 	// Check bearer is at the beginning of the token
 	if index != 0 {
 		return "", ErrMissingBearerToken
 	}
 
-	token := bearer[index+len(bearerPrefix):]
+	token := authHeader[index+len(bearerPrefix):]
+	return token, nil
+}
+
+const apiKeyPrefix = "apikey "
+
+func GetAPIKey(headers http.Header) (string, error) {
+	authHeader := headers.Get("Authorization")
+
+	// strip apiKeyPrefix
+	index := strings.Index(strings.ToLower(authHeader), apiKeyPrefix)
+	// Check apiKeyPrefix is at the beginning of the token
+	if index != 0 {
+		return "", ErrMissingBearerToken
+	}
+
+	token := authHeader[index+len(apiKeyPrefix):]
 	return token, nil
 }

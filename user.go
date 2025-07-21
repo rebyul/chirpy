@@ -141,19 +141,16 @@ const (
 	UserUpgraded PolkaRequestType = iota
 )
 
-// func (p PolkaRequestType) String() string {
-// 	return polkaRequestType[p]
-// }
-//
-// var polkaRequestType = map[PolkaRequestType]string{
-// 	UserUpgraded: "user.upgraded",
-// }
-
 var polkaReverseRequest = map[string]PolkaRequestType{
 	"user.upgraded": UserUpgraded,
 }
 
 func (u *userHandler) UpgradeUserToChipyRed(w http.ResponseWriter, r *http.Request) {
+	if apiKey, err := auth.GetAPIKey(r.Header); err != nil || apiKey != u.cfg.polkakey {
+		responses.SendJsonErrorResponse(w, http.StatusUnauthorized, "invalid api key", err)
+		return
+	}
+
 	type polkaRequest struct {
 		Event string `json:"event"`
 		Data  struct {

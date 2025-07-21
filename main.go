@@ -28,6 +28,7 @@ func main() {
 	dbURL := os.Getenv("DB_URL")
 	platform := os.Getenv("PLATFORM")
 	tokenSecret := os.Getenv("TOKEN_SECRET")
+	polkaKey := os.Getenv("POLKA_KEY")
 
 	db, dbErr := sql.Open("postgres", dbURL)
 
@@ -46,6 +47,7 @@ func main() {
 		platform:       platform,
 		queries:        dbQueries,
 		tokensecret:    tokenSecret,
+		polkakey:       polkaKey,
 	}
 
 	fileHandler := fileHandler{}
