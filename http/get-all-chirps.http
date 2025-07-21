@@ -1,0 +1,52 @@
+import './auth.http'
+import './chirp.http'
+
+
+### GET_ALL_CHIRPS
+
+run #LOGIN
+
+GET /api/chirps HTTP/1.1
+Content-Type: application/json
+Authorization: bearer {{LOGIN.response.body.$.token}}
+Host: {{BASE_URL}}
+
+> {%
+   -- lua
+   local login_response = client.responses["LOGIN"].json
+   -- client.log( response)
+   if not login_response then return end
+   
+   assert(response.response_code == 200,"Check response is 200" )
+%}
+
+
+### GET_ALL_CHIRPS_WITH_AUTHOR_FILTER
+
+run #LOGIN
+run #CREATE_CHIRP
+
+GET /api/chirps?author_id={{LOGIN.response.body.$.id}} HTTP/1.1
+Content-Type: application/json
+Authorization: bearer {{LOGIN.response.body.$.token}}
+Host: {{BASE_URL}}
+
+> {%
+   -- lua
+   local login_response = client.responses["LOGIN"].json
+   -- client.log( response)
+   if not login_response then return end
+   
+   assert(response.response_code == 200,"Check response is 200" )
+   local all_belong_to_author = true
+   
+   local body = response.json
+   for i=1, #body do 
+   local value = body[i]
+   if not ( value.user_id == login_response.id )then
+   all_belong_to_author = false
+   break
+   end
+   end
+   assert(all_belong_to_author == true, "all filtered correctly")
+%}

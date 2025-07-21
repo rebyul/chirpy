@@ -92,7 +92,24 @@ func (c *ChirpHandlers) CreateChirp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *ChirpHandlers) GetAllChirps(w http.ResponseWriter, r *http.Request) {
-	chirps, err := c.cfg.queries.GetChirps(r.Context())
+	queryParams := r.URL.Query()
+	var filter_author = uuid.NullUUID{Valid: false}
+
+	if queryParams.Has("author_id") {
+		authorString := queryParams.Get("author_id")
+		log.Println("found author id", authorString)
+		parsedGuid, err := uuid.Parse(authorString)
+		if err != nil {
+			responses.SendJsonErrorResponse(w, http.StatusInternalServerError, "failed to retrieve chirps", err)
+			return
+		}
+		filter_author = uuid.NullUUID{
+			UUID:  parsedGuid,
+			Valid: true,
+		}
+	}
+
+	chirps, err := c.cfg.queries.GetChirps(r.Context(), filter_author)
 
 	if err != nil {
 		responses.SendJsonErrorResponse(w, http.StatusInternalServerError, "failed to retrieve chirps", err)
@@ -107,7 +124,6 @@ func (c *ChirpHandlers) GetAllChirps(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responses.SendJsonResponse(w, http.StatusOK, chirpResponses)
-	return
 }
 
 func (c *ChirpHandlers) GetChirpById(w http.ResponseWriter, r *http.Request) {

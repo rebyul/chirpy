@@ -13,6 +13,9 @@ SELECT
     user_id
 FROM
     chirps
+WHERE
+    sqlc.narg ('author_filter')::uuid IS NULL
+    OR user_id = sqlc.narg ('author_filter')::uuid
 ORDER BY
     created_at ASC;
 

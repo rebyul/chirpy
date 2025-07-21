@@ -81,12 +81,15 @@ SELECT
     user_id
 FROM
     chirps
+WHERE
+    $1::uuid IS NULL
+    OR user_id = $1::uuid
 ORDER BY
     created_at ASC
 `
 
-func (q *Queries) GetChirps(ctx context.Context) ([]Chirp, error) {
-	rows, err := q.db.QueryContext(ctx, getChirps)
+func (q *Queries) GetChirps(ctx context.Context, authorFilter uuid.NullUUID) ([]Chirp, error) {
+	rows, err := q.db.QueryContext(ctx, getChirps, authorFilter)
 	if err != nil {
 		return nil, err
 	}
