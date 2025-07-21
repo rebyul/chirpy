@@ -1,0 +1,63 @@
+import './auth.http'
+import "./create-user.http"
+
+
+### TEST_UPGRADE_USER
+
+run #LOGIN_WITH_VALID_EXPIRATION (@EMAIL=user@test.com, @PASSWORD=asdfasdf)
+
+POST /api/polka/webhooks HTTP/1.1
+Content-Type: application/json
+Host: {{BASE_URL}}
+
+{
+  "data": {
+    "user_id": "{{LOGIN_WITH_VALID_EXPIRATION.response.body.$.id}}"
+  },
+  "event": "user.upgraded"
+}
+
+> {%
+   let json = response.body;
+   assert.responseHas('responseCode', 204, 'Check response is 204')
+%}
+
+
+### TEST_INVALID_WEBHOOK_EVENT
+
+run #LOGIN_WITH_VALID_EXPIRATION (@EMAIL=user@test.com, @PASSWORD=asdfasdf)
+
+POST /api/polka/webhooks HTTP/1.1
+Content-Type: application/json
+Host: {{BASE_URL}}
+
+{
+  "data": {
+    "user_id": "{{LOGIN_WITH_VALID_EXPIRATION.response.body.json.id}}"
+  },
+  "event": "user.payment_failed"
+}
+
+> {%
+   let json = response.body;
+   assert.responseHas('responseCode', 204, 'Check response is 204')
+%}
+
+
+### TEST_UNKNOWN_USER
+
+POST /api/polka/webhooks HTTP/1.1
+Content-Type: application/json
+Host: {{BASE_URL}}
+
+{
+  "data": {
+    "user_id": "unknown_user_id"
+  },
+  "event": "user.upgraded"
+}
+
+> {%
+   let json = response.body;
+   assert.responseHas('responseCode', 404, 'Check response is 404')
+%}

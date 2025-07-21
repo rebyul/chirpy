@@ -29,10 +29,11 @@ Host: {{BASE_URL}}
    assert.true(json.email === 'user@test.com', 'Has correct email')
    assert.true('token' in json, 'Has .token')
    assert.true('refresh_token' in json, 'Has .refresh_token')
+   assert.true('is_chirpy_red' in json, 'Has .is_chirpy_red')
 %}
 
 
-### LOGIN_WITH_VALID_EXPIRES_IN_SECONDS
+### LOGIN_WITH_VALID_EXPIRATION
 
 run #RESET_USERS
 run #CREATE_USER (@PASSWORD=asdfasdf, @EMAIL=user@test.com)
@@ -57,6 +58,7 @@ Host: {{BASE_URL}}
    assert.true(json.email === 'user@test.com', 'Has correct email')
    assert.true('token' in json, 'Has .token')
    assert.true('refresh_token' in json, 'Has .refresh_token')
+   assert.true('is_chirpy_red' in json, 'Has .is_chirpy_red')
 %}
 
 
@@ -90,11 +92,11 @@ Host: {{BASE_URL}}
 
 ### CREATE_REFRESH_TOKEN
 
-run #LOGIN_WITH_VALID_EXPIRES_IN_SECONDS
+run #LOGIN_WITH_VALID_EXPIRATION
 
 POST /api/refresh HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer {{LOGIN_WITH_VALID_EXPIRES_IN_SECONDS.response.body.$.refresh_token}}
+Authorization: Bearer {{LOGIN_WITH_VALID_EXPIRATION.response.body.$.refresh_token}}
 Host: {{BASE_URL}}
 
 {}
@@ -108,11 +110,11 @@ Host: {{BASE_URL}}
 
 ### REVOKE_REFRESH_TOKEN
 
-run #LOGIN_WITH_VALID_EXPIRES_IN_SECONDS
+run #LOGIN_WITH_VALID_EXPIRATION
 
 POST /api/revoke HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer {{LOGIN_WITH_VALID_EXPIRES_IN_SECONDS.response.body.$.refresh_token}}
+Authorization: Bearer {{LOGIN_WITH_VALID_EXPIRATION.response.body.$.refresh_token}}
 Host: {{BASE_URL}}
 
 {}

@@ -22,6 +22,7 @@ Host: {{BASE_URL}}
    assert.true('created_at' in json, 'Has .created_at')
    assert.true('updated_at' in json, 'Has .update_at')
    assert.true('email' in json, 'Has .email')
+   assert.true('is_chirpy_red' in json, 'Has .is_chirpy_red')
    assert.true(json.email === 'user@test.com', 'Has correct email')
    })
 %}

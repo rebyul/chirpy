@@ -3,11 +3,11 @@ import ./auth.http
 
 ### CREATE_CHIRP
 
-run #LOGIN_WITH_VALID_EXPIRES_IN_SECONDS
+run #LOGIN_WITH_VALID_EXPIRATION
 
 POST /api/chirps HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer {{LOGIN_WITH_VALID_EXPIRES_IN_SECONDS.response.body.$.token}}
+Authorization: Bearer {{LOGIN_WITH_VALID_EXPIRATION.response.body.$.token}}
 Host: {{BASE_URL}}
 
 {
@@ -155,15 +155,15 @@ Host: {{BASE_URL}}
 
 ### DELETE_CHIRP_BY_ID
 
-run #LOGIN_WITH_VALID_EXPIRES_IN_SECONDS
+run #LOGIN_WITH_VALID_EXPIRATION
 run #CREATE_CHIRP
 
 DELETE /api/chirps/{{CREATE_CHIRP.response.body.$.id}} HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer {{LOGIN_WITH_VALID_EXPIRES_IN_SECONDS.response.body.$.token}}
+Authorization: Bearer {{LOGIN_WITH_VALID_EXPIRATION.response.body.$.token}}
 Host: {{BASE_URL}}
 
 > {%
    
-   client.responseHas('responseCode', 204, 'CHeck response is 204')
+   assert.responseHas('responseCode', 204, 'Check response is 204')
 %}
