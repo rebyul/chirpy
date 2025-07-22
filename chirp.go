@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -109,7 +110,23 @@ func (c *ChirpHandlers) GetAllChirps(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	var sortQuery = ""
+
+	if queryParams.Has("sort") {
+		sortQuery = queryParams.Get("sort")
+	}
+
 	chirps, err := c.cfg.queries.GetChirps(r.Context(), filter_author)
+
+	if sortQuery != "" {
+		sort.Slice(chirps, func(i, j int) bool {
+			if sortQuery == "asc" {
+				return chirps[i].CreatedAt.Before(chirps[j].CreatedAt)
+			}
+
+			return chirps[i].CreatedAt.After(chirps[j].CreatedAt)
+		})
+	}
 
 	if err != nil {
 		responses.SendJsonErrorResponse(w, http.StatusInternalServerError, "failed to retrieve chirps", err)
